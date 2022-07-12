@@ -1,58 +1,40 @@
-import random
-import time
+import level
+from level import Level
+from my_turtle import MyTurtle
 from turtle import Screen
 
-from Paddle import Paddle
-from ball import Ball
-from score import Score
+from car import Car
 
 screen = Screen()
-screen.setup(height=600, width=600)
-
+screen.setup(width=600, height=600)
 screen.tracer(False)
-score = Score("right")
-score1 = Score("left")
-screen.bgcolor("black")
-paddle = Paddle("right")
-paddle2 = Paddle("left")
-ball = Ball()
-
-screen.listen()
-screen.onkeypress(fun=paddle2.move_up, key="w")
-screen.onkeypress(fun=paddle2.move_down, key="s")
-screen.onkeypress(fun=paddle.move_up, key="Up")
-screen.onkeypress(fun=paddle.move_down, key="Down")
-
+car = Car()
+my_turtle = MyTurtle()
+level_board = Level()
 screen.tracer(True)
-
+screen.listen()
 game_is_on = True
+screen.onkeypress(fun=my_turtle.move, key="w")
+cars = []
 while game_is_on:
-    if abs(ball.xcor()) <= 280:
-        ball.move()
-        if paddle.distance(ball) < 50:
-            ball.forward(20)  # to balance the distance between the paddle and the ball.
-            ball.setheading(180 - ball.heading())
-            ball.forward(50)
-        elif paddle2.distance(ball) < 50:
-            ball.forward(20)  # to balance the distance between the paddle and the ball.
-            ball.setheading(180 - ball.heading())
-            ball.forward(50)
+    if my_turtle.ycor() >= 280:
+        level_board.update_level()
+        screen.tracer(False)
+        my_turtle.goto(0, -280)
+        for car in cars:
+            car.hideturtle()
+        cars =[]
+    if len(cars) < 50:
+        screen.tracer(False)
+        car = Car()
+        cars.append(car)
+        screen.tracer(True)
     else:
-        if ball.xcor() > 280:
-            score.increase_score()
-        elif ball.xcor() < -280:
-            score1.increase_score()
-        if score.score != 12 and score1.score != 12:
-            screen.tracer(False)
-            # set coordinates to starting points. --
-            ball.goto(0, 0)
-            paddle.goto(paddle.xcor(), 0)
-            paddle2.goto(paddle2.xcor(), 0)
-            # --
-            screen.tracer(True)
-            time.sleep(1)  # wait a second to start.
-            ball.setheading(random.choice([180 - ball.heading(), -180 + ball.heading()]))
+        cars = cars[1:]
+    for car in cars:
+        if car.distance(my_turtle) > 50:
+            car.move_up(level_board.level *10)
         else:
-            score.game_over()
+            my_turtle.stop()
             game_is_on = False
 screen.exitonclick()
